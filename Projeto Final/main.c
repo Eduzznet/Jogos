@@ -30,7 +30,6 @@ int main (int argc, char* args[])
 
     /* EXECUÇÃO */
     SDL_Rect r = { 40,20, 10,10 };
-    SDL_Rect r2 = { 60,20, 10,10 };
     SDL_Rect r3 = { 80,20, 40,40 };
     SDL_Point mousePos;
     int mx,my;
