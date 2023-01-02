@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 
@@ -12,6 +13,12 @@ int AUX_WaitEventTimeoutCount (SDL_Event* evt, Uint32* ms){
   	    *ms -= tempassado;
     }
     return isevt;	
+}
+
+void remover_elemento(SDL_Rect *array, int index, int array_length)
+{
+   int i;
+   for(i = index; i < array_length - 1; i++) array[i] = array[i + 1];
 }
 
 int main (int argc, char* args[])
@@ -29,8 +36,9 @@ int main (int argc, char* args[])
     SDL_Renderer* ren = SDL_CreateRenderer(win, -1, 0);
 
     /* EXECUÇÃO */
-    SDL_Rect r = { 40,20, 10,10 };
-    SDL_Rect r3 = { 80,20, 40,40 };
+    SDL_Rect Rects [3] = { 40,20, 10,10,  60,300, 10,10,  20,500, 10,10 };
+    SDL_Rect Mira = { 80,20, 40,40 };
+    //printf("%d", Rects[0].x);
     SDL_Point mousePos;
     int mx,my;
     Uint32 espera = es;
@@ -38,9 +46,8 @@ int main (int argc, char* args[])
         SDL_SetRenderDrawColor(ren, 0xFF,0xFF,0xFF,0x00);
         SDL_RenderClear(ren);
         SDL_SetRenderDrawColor(ren, 0x00,0x00,0xFF,0x00);
-        SDL_RenderFillRect(ren, &r);
-        SDL_RenderFillRect(ren, &r2);
-        SDL_RenderFillRect(ren, &r3);
+        for (int i=0; i<3; i++) SDL_RenderFillRect(ren, &Rects[i]);
+        SDL_RenderFillRect(ren, &Mira);
         SDL_RenderPresent(ren);
 
         SDL_Event evt;
@@ -50,13 +57,14 @@ int main (int argc, char* args[])
                 SDL_GetMouseState(&mx, &my);
                 mousePos.x = mx;
                 mousePos.y = my;
-                r3.x=mx - (r3.w/2);
-                r3.y=my - (r3.h/2);
+                Mira.x=mx - (Mira.w/2);
+                Mira.y=my - (Mira.h/2);
             }
             if (evt.type == SDL_MOUSEBUTTONDOWN){ 
                 if (evt.button.button == SDL_BUTTON_LEFT){
-                    if (SDL_HasIntersection(&r3, &r))
-                        r.w+=5;        
+                    if (SDL_HasIntersection(&Mira, &Rects[0]))
+                        remover_elemento(Rects, 0, 3);
+                        //Rects[0].w+=5;        
                 }
             }
         }
