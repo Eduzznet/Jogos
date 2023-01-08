@@ -1,5 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 
@@ -18,7 +20,7 @@ int AUX_WaitEventTimeoutCount (SDL_Event* evt, Uint32* ms){
 void remover_elemento(SDL_Rect *array, int index, int array_length)
 {
    int i;
-   for(i = index; i < array_length - 1; i++) array[i] = array[i + 1];
+   for(i = index; i < array_length; i++) array[i] = array[i + 1];
 }
 
 int main (int argc, char* args[])
@@ -36,7 +38,12 @@ int main (int argc, char* args[])
     SDL_Renderer* ren = SDL_CreateRenderer(win, -1, 0);
 
     /* EXECUÇÃO */
-    SDL_Rect Rects [3] = { 40,20, 10,10,  60,300, 10,10,  20,500, 10,10 };
+    time_t t;
+    srand((unsigned) time(&t));
+    SDL_Rect Rects [10];// = { 40,20, 10,10,  60,300, 30,30,  20,500, 10,10 };
+    //Rects[4] = teste;
+    int entcout = 0;
+    int gen;
     SDL_Rect Mira = { 80,20, 40,40 };
     //printf("%d", Rects[0].x);
     SDL_Point mousePos;
@@ -46,7 +53,7 @@ int main (int argc, char* args[])
         SDL_SetRenderDrawColor(ren, 0xFF,0xFF,0xFF,0x00);
         SDL_RenderClear(ren);
         SDL_SetRenderDrawColor(ren, 0x00,0x00,0xFF,0x00);
-        for (int i=0; i<3; i++) SDL_RenderFillRect(ren, &Rects[i]);
+        for (int i=0; i<10; i++) SDL_RenderFillRect(ren, &Rects[i]);
         SDL_RenderFillRect(ren, &Mira);
         SDL_RenderPresent(ren);
 
@@ -62,9 +69,39 @@ int main (int argc, char* args[])
             }
             if (evt.type == SDL_MOUSEBUTTONDOWN){ 
                 if (evt.button.button == SDL_BUTTON_LEFT){
-                    if (SDL_HasIntersection(&Mira, &Rects[0]))
-                        remover_elemento(Rects, 0, 3);
-                        //Rects[0].w+=5;        
+                    for (int i=0; i<10; i++){ 
+                        if (SDL_HasIntersection(&Mira, &Rects[i])){
+                            remover_elemento(Rects, i, 10);
+                            entcout-=1;          
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            espera = es;
+            while (entcout<10){
+                SDL_Rect RGrande = {10,rand() % 500, 30,30};
+                SDL_Rect RPequeno = {10,rand() % 500, 10,10};
+                gen = rand() % 2;
+                switch (gen){
+                    case 0:
+                        Rects[entcout] = RGrande;
+                        entcout+=1;
+                        break;
+                    case 1:
+                        Rects[entcout] = RPequeno;
+                        entcout+=1;
+                        break;     
+                }
+            }
+            for (int i=0; i<10; i++){
+                if (Rects[i].h==10){           
+                    Rects[i].x += 2;
+                    Rects[i].y += 2;
+                }
+                if (Rects[i].h>10){
+                    Rects[i].x +=10;
                 }
             }
         }
