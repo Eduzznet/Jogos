@@ -17,6 +17,13 @@ int AUX_WaitEventTimeoutCount (SDL_Event* evt, Uint32* ms){
     return isevt;
 }
 
+int PointInRect (SDL_Point* p, SDL_Rect* r){
+return!(p->x < r->x ||
+p->y < r->y ||
+p->x > r->x+r->w ||
+p->y > r->y+r->h );
+}
+
 typedef enum {
     MENU,
     RUNNING,
@@ -24,6 +31,14 @@ typedef enum {
 } Game_State;
 
 Game_State Game = MENU;
+
+typedef enum {
+    READY,
+    SHOOTING,
+    RELOADING,
+} Gun_State;
+
+Gun_State Gun = READY;
 
 void remover_elemento(SDL_Rect *array, int index, int array_length)
 {
@@ -54,6 +69,7 @@ int main (int argc, char* args[])
     int gen;
     int i = 0;
     int cooldown = 0;
+    int entrespawn =0;
     SDL_Rect Mira = { 250,100, 0,0 };
     SDL_Rect BotaoStart = {150, 100, 300, 50};
     SDL_Rect BotaoQuit = {150, 200, 300, 50};
@@ -74,10 +90,11 @@ int main (int argc, char* args[])
             switch (evt.type){
                 case SDL_MOUSEBUTTONDOWN:
                     if (evt.button.button == SDL_BUTTON_LEFT){
-                        if (SDL_PointInRect(&mousePos, &BotaoStart)){
+                        if (PointInRect(&mousePos, &BotaoStart)){
                             Game = RUNNING;
+                            Gun=READY;
                         }
-                        if (SDL_PointInRect(&mousePos, &BotaoQuit)){
+                        if (PointInRect(&mousePos, &BotaoQuit)){
                             /* FINALIZACAO */
                             SDL_DestroyRenderer(ren);
                             SDL_DestroyWindow(win);
@@ -107,7 +124,7 @@ int main (int argc, char* args[])
             for (i=0; i<10; i++) SDL_RenderFillRect(ren, &Rects[i]);
             SDL_RenderFillRect(ren, &Mira);
             SDL_RenderPresent(ren);
-        
+       
             //SDL_Event evt;
             //int aux = AUX_WaitEventTimeoutCount(&evt, &espera);
             if (aux) {
@@ -120,20 +137,29 @@ int main (int argc, char* args[])
                 }
                 if (evt.type == SDL_MOUSEBUTTONDOWN){
                     if (evt.button.button == SDL_BUTTON_LEFT){
+                        if (Gun == READY){
+                        Gun = SHOOTING;
+                        }
                         for (i=0; i<10; i++){
-                            if (SDL_HasIntersection(&Mira, &Rects[i])){
+                            if (SDL_HasIntersection(&Mira, &Rects[i]) && Gun == SHOOTING){
                                 remover_elemento(Rects, i, 10);
                                 entcout-=1;          
                             }
                         }
+                        Gun = RELOADING;
                     }
                 }
             }
             else {
-            //TODA VEZ Q ENTRAR NA ESPERA (100ms) VAI CONTAR++
-                //cooldown++;
-                //CONTADOR DE TEMPO?????
-                //if(cooldown == 500){
+                //espera=es;                
+                cooldown++;
+                //entrespawn++;
+                if (cooldown==10 && Gun ==RELOADING){
+                Gun = READY;
+                cooldown=0;
+                }
+                espera=es;
+                //if (entrespawn==50){
                 while (entcout<10){
                     SDL_Rect RGrande = {10,rand() % 500, 30,30};
                     SDL_Rect RPequeno = {10,rand() % 500, 10,10};
@@ -149,24 +175,8 @@ int main (int argc, char* args[])
                             break;    
                     }
                 }
-                //cooldown = 0;
-                //} 
-                espera = es;
-                while (entcout<10){
-                    SDL_Rect RGrande = {10,rand() % 500, 30,30};
-                    SDL_Rect RPequeno = {10,rand() % 500, 10,10};
-                    gen = rand() % 2;
-                    switch (gen){
-                        case 0:
-                            Rects[entcout] = RGrande;
-                            entcout+=1;
-                            break;
-                        case 1:
-                            Rects[entcout] = RPequeno;
-                            entcout+=1;
-                            break;    
-                    }
-                }
+                //entrespawn=0;
+                //}
                 for (i=0; i<10; i++){
                     if (Rects[i].h==10){          
                         Rects[i].x += 2;
@@ -174,6 +184,10 @@ int main (int argc, char* args[])
                     }
                     if (Rects[i].h>10){
                         Rects[i].x +=10;
+                    }
+                    if (Rects[i].x + Rects[i].w > ww || Rects[i].y + Rects[i].h > wh){
+                    remover_elemento(Rects, i, 10);
+                                                entcout-=1;
                     }
                 }
             }
